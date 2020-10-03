@@ -15,9 +15,6 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 @ConditionalOnProperty(prefix = "swagger2",name = {"enable"},havingValue = "true")
 public class SwaggerConfig {
-    public SwaggerConfig(){
-        System.out.println("===================");
-    }
     @Bean
     public Docket createRestApi() {
         return new Docket(DocumentationType.SWAGGER_2)

@@ -22,6 +22,8 @@ public class MyRealm extends AuthorizingRealm {
         String principal = (String) token.getPrincipal();
         if ("admin".equals(principal)){
             return new SimpleAuthenticationInfo(principal,"123",this.getName());
+        }else if ("uesr".equals(principal)){
+            return new SimpleAuthenticationInfo(principal,"456",this.getName());
         }
         return null;
     }

@@ -8,26 +8,63 @@ import java.util.Map;
 public class JsonResponse extends HashMap<String,Object>{
     public static Map<Integer,String> error = Maps.newHashMap();
 
-    public static final String ERROR_MSG = "erroMsg";
+    public static final String ERROR_MSG = "errorMsg";
 
-    public static final String SUCCESS = "操作成功";
+    public static final String ERROR_CODE = "errorCode";
 
-    public static final String  NOT_LOG= "未登录";
 
-    public static final String  NO_AUTHORITY= "没有权限";
-
-    public static final String  INVALID_PARAM = "参数错误";
-
-    public static final String  UNKNOWN_ERROR = "未知错误";
-
-    public static JsonResponse error(String msg){
+    public static JsonResponse error(int code, String msg){
         JsonResponse jsonResponse = new JsonResponse();
+        jsonResponse.put(ERROR_CODE,code);
         jsonResponse.put(ERROR_MSG,msg);
         return jsonResponse;
     }
     public static JsonResponse success(){
         JsonResponse jsonResponse = new JsonResponse();
-        jsonResponse.put(ERROR_MSG,SUCCESS);
+        jsonResponse.put(ERROR_CODE,0);
+        jsonResponse.put(ERROR_MSG,"操作成功");
+        return jsonResponse;
+    }
+
+    public static JsonResponse noLogError(){
+        JsonResponse jsonResponse = new JsonResponse();
+        jsonResponse.put(ERROR_CODE,1);
+        jsonResponse.put(ERROR_MSG,"未登录");
+        return jsonResponse;
+    }
+
+    public static JsonResponse noAuthority(){
+        JsonResponse jsonResponse = new JsonResponse();
+        jsonResponse.put(ERROR_CODE,2);
+        jsonResponse.put(ERROR_MSG,"没有权限");
+        return jsonResponse;
+    }
+
+    public static JsonResponse invalidParam(){
+        JsonResponse jsonResponse = new JsonResponse();
+        jsonResponse.put(ERROR_CODE,3);
+        jsonResponse.put(ERROR_MSG,"参数错误");
+        return jsonResponse;
+    }
+
+    public static JsonResponse invalidParam(String msg){
+        JsonResponse jsonResponse = new JsonResponse();
+        jsonResponse.put(ERROR_CODE,3);
+        jsonResponse.put(ERROR_MSG,msg);
+        return jsonResponse;
+    }
+
+    public static JsonResponse repeatLogin(String username){
+        JsonResponse jsonResponse = new JsonResponse();
+        jsonResponse.put(ERROR_CODE,4);
+        jsonResponse.put(ERROR_MSG,"用户"+ username + "已登录，若要切换用户请先退出");
+        return jsonResponse;
+    }
+
+    public static JsonResponse unknownError(){
+        JsonResponse jsonResponse = new JsonResponse();
+        jsonResponse.put(ERROR_CODE,10);
+        jsonResponse.put(ERROR_MSG,"未知错误");
         return jsonResponse;
     }
 }
