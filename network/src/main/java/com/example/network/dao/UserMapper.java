@@ -20,4 +20,6 @@ public interface UserMapper {
     Integer checkExist(String id);
 
     User getUserById(String id);
+
+    Integer update(User user);
 }

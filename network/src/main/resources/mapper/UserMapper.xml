@@ -38,4 +38,12 @@
         select id,name,password,role from users
         where id = #{id}
     </select>
+
+    <update id="update">
+        update users
+        set name = #{name},
+        password = #{password},
+        role = #{role}
+        where id = #{id}
+    </update>
 </mapper>

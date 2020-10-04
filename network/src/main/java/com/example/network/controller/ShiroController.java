@@ -2,26 +2,18 @@ package com.example.network.controller;
 
 import com.example.network.service.ShiroService;
 import com.example.network.service.StudentService;
+import com.example.network.vo.ConstantField;
 import com.example.network.vo.JsonResponse;
 import com.example.network.vo.User;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.authz.annotation.RequiresAuthentication;
-import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import springfox.documentation.spring.web.json.Json;
 
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import java.util.Enumeration;
 import java.util.Map;
 
 @Controller
@@ -35,23 +27,22 @@ public class ShiroController {
     ShiroService shiroService;
 
     @ResponseBody
-    @PostMapping("/test")
+    @GetMapping("/test")
     @ApiOperation("测试权限")
-    public JsonResponse test(@RequestBody int id){
-        if (id == 1){
-            System.out.println(shiroService.checkAuthentication());
-        }else {
-            System.out.println(shiroService.checkAuthorization());
-        }
+    public JsonResponse test(){
+        boolean falgLog = shiroService.checkAuthentication();
+        boolean flagAdmin = shiroService.checkAdminPermission();
         JsonResponse success = JsonResponse.success();
+        success.put("登陆状态",falgLog);
+        success.put("管理员权限",flagAdmin);
         return success;
     }
     @ResponseBody
     @PostMapping("/login")
     @ApiOperation("登录")
     public JsonResponse login(@RequestBody Map<String, String> params){
-        String id = params.get("id");
-        String password = params.get("password");
+        String id = params.get(ConstantField.ID);
+        String password = params.get(ConstantField.PASSWORD);
         if (StringUtils.isEmpty(id)){
             return JsonResponse.invalidParam("学号呢？");
         }
@@ -66,8 +57,8 @@ public class ShiroController {
     }
 
     @ResponseBody
-    @PostMapping("/logout")
-    @ApiOperation("退出")
+    @GetMapping("/logout")
+    @ApiOperation("注销")
     public JsonResponse logout(){
 
         Subject subject = SecurityUtils.getSubject();
@@ -92,7 +83,17 @@ public class ShiroController {
         if (StringUtils.isEmpty(user.getPassword())){
             return JsonResponse.invalidParam("密码呢？");
         }
-        if (!"admin".equals(user.getRole()) && !"student".equals(user.getRole())){
+        //role为空默认为学生角色
+        if (StringUtils.isEmpty(user.getRole())){
+            user.setRole(ConstantField.ROLE_STUDENT);
+        }
+        //创建管理员账号需要管理员权限
+        if (ConstantField.ROLE_ADMIN.equals(user.getRole())){
+            if (!shiroService.checkAdminPermission()){
+                return JsonResponse.noAuthority();
+            }
+        }
+        if (!ConstantField.ROLE_ADMIN.equals(user.getRole()) && !ConstantField.ROLE_STUDENT.equals(user.getRole())){
             return JsonResponse.invalidParam("不接受你这种角色！");
         }
         try{
@@ -100,5 +101,44 @@ public class ShiroController {
         }catch (Exception e){
             return JsonResponse.unknownError();
         }
+    }
+
+    @ResponseBody
+    @PostMapping("/changePassword")
+    @ApiOperation("修改密码")
+    public JsonResponse changePassowrd(@RequestBody Map<String, String> params){
+        if (!shiroService.checkAuthentication()){
+            return JsonResponse.noLogError();
+        }
+        String oldPassword = params.get(ConstantField.OLD_PASSWORD);
+        String password = params.get(ConstantField.PASSWORD);
+
+        if (StringUtils.isEmpty(oldPassword)){
+            return JsonResponse.invalidParam("旧密码呢？");
+        }
+        if (StringUtils.isEmpty(password)){
+            return JsonResponse.invalidParam("新密码呢？");
+        }
+
+        try{
+            return shiroService.changePassowrd(oldPassword,password);
+        }catch (Exception e){
+            return JsonResponse.unknownError();
+        }
+    }
+
+    @ResponseBody
+    @GetMapping("/getRole")
+    @ApiOperation("获取当前用户角色")
+    public JsonResponse getRole(){
+        try{
+            String role = shiroService.getRole();
+            JsonResponse success = JsonResponse.success();
+            success.put("role",role);
+            return success;
+        }catch (Exception e){
+            return JsonResponse.unknownError();
+        }
+
     }
 }
