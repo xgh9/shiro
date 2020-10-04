@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.network.dao.UserMapper">
+
+
+    <resultMap type="com.example.network.vo.User" id="UserMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="role" column="role" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <insert id="insert" >
+        insert into users(id,name,password,role)
+        values (#{id},#{name},#{password},#{role})
+    </insert>
+
+    <select id="getAllUser" resultMap="UserMap">
+        select id,name,password,role from users
+    </select>
+
+    <select id="getAllStudent" resultMap="UserMap">
+        select id,name,password,role from users
+        where role = 'student'
+    </select>
+
+    <select id="getAllAdmin" resultMap="UserMap">
+        select id,name,password,role from users
+        where role = 'admin'
+    </select>
+
+    <select id="checkExist" resultType="java.lang.Integer">
+        select count(id) from users
+        where id = #{id}
+    </select>
+
+    <select id="getUserById" resultMap="UserMap">
+        select id,name,password,role from users
+        where id = #{id}
+    </select>
+</mapper>

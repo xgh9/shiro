@@ -1,5 +1,6 @@
 package com.example.network.config;
 
+import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
 import org.apache.shiro.realm.Realm;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
@@ -19,6 +20,12 @@ public class ShiroConfig {
     @Bean
     public DefaultWebSecurityManager getDefaultWebSecurityManager(MyRealm realm){
         DefaultWebSecurityManager defaultWebSecurityManager = new DefaultWebSecurityManager();
+        //设置密码匹配器
+        HashedCredentialsMatcher matcher = new HashedCredentialsMatcher();
+        //设置加密算法
+        matcher.setHashAlgorithmName("MD5");
+        //设置散列次数
+        matcher.setHashIterations(10);
         defaultWebSecurityManager.setRealm(realm);
         return defaultWebSecurityManager;
     }
