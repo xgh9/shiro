@@ -37,10 +37,6 @@ public class ShiroServiceImpl implements ShiroService{
         }
     }
 
-    @Override
-    public JsonResponse logout() {
-        return null;
-    }
 
     @Override
     public JsonResponse register(User user) {
@@ -67,5 +63,17 @@ public class ShiroServiceImpl implements ShiroService{
     @Override
     public User getUserById(String id) {
         return userMapper.getUserById(id);
+    }
+
+    @Override
+    public boolean checkAuthentication(){
+        Subject subject = SecurityUtils.getSubject();
+        return subject.isAuthenticated();
+    }
+
+    @Override
+    public boolean checkAuthorization(){
+        Subject subject = SecurityUtils.getSubject();
+        return subject.hasRole("admin");
     }
 }
