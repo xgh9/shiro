@@ -111,11 +111,12 @@ public class ShiroServiceImpl implements ShiroService{
         }
         Md5Hash newMd5Hash = new Md5Hash(password, id, 10);
         user.setPassword(newMd5Hash.toHex());
-        userMapper.update(user);
 
         //手动清空缓存  如果有更好的获取缓存管理器的方法请告诉我
         Cache<Object, AuthenticationInfo> authenticationCache = myRealm.getAuthenticationCache();
         authenticationCache.remove(id);
+
+        userMapper.update(user);
 
         return JsonResponse.success();
     }
