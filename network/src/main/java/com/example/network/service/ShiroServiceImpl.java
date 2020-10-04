@@ -38,7 +38,7 @@ public class ShiroServiceImpl implements ShiroService{
         if (!subject.isAuthenticated()){
             try{
                 UsernamePasswordToken token = new UsernamePasswordToken(id, password);
-                token.setRememberMe(true);
+//                token.setRememberMe(true);
                 subject.login(token);
             }catch (UnknownAccountException e){
                 return JsonResponse.invalidParam("用户名错误");
@@ -150,7 +150,6 @@ public class ShiroServiceImpl implements ShiroService{
         }
 
         //如果缓存中没有就去数据库中取
-
         return getUserById((String)subject.getPrincipal()).getRole();
     }
 

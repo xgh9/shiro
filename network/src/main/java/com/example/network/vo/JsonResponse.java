@@ -23,6 +23,8 @@ public class JsonResponse extends HashMap<String,Object>{
 
     public static JsonResponse staticJsonResponse;
 
+    private JsonResponse(){}
+
     @PostConstruct
     public void init(){
         staticJsonResponse = this;
