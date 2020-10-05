@@ -19,6 +19,7 @@ public class MyRealm extends AuthorizingRealm {
     @Autowired
     ShiroService shiroService;
 
+    //sfa
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
         String primaryPrincipal = (String)principalCollection.getPrimaryPrincipal();
