@@ -61,6 +61,13 @@ public class JsonResponse extends HashMap<String,Object>{
         jsonResponse.put("role",staticJsonResponse.shiroService.getRole());
         return jsonResponse;
     }
+    public static JsonResponse noAuthority(String msg){
+        JsonResponse jsonResponse = new JsonResponse();
+        jsonResponse.put(ERROR_CODE,2);
+        jsonResponse.put(ERROR_MSG,msg);
+        jsonResponse.put("role",staticJsonResponse.shiroService.getRole());
+        return jsonResponse;
+    }
 
     public static JsonResponse invalidParam(){
         JsonResponse jsonResponse = new JsonResponse();
@@ -90,6 +97,14 @@ public class JsonResponse extends HashMap<String,Object>{
         JsonResponse jsonResponse = new JsonResponse();
         jsonResponse.put(ERROR_CODE,10);
         jsonResponse.put(ERROR_MSG,"未知错误");
+        jsonResponse.put("role",staticJsonResponse.shiroService.getRole());
+        return jsonResponse;
+    }
+
+    public static JsonResponse unknownError(String msg){
+        JsonResponse jsonResponse = new JsonResponse();
+        jsonResponse.put(ERROR_CODE,10);
+        jsonResponse.put(ERROR_MSG, msg);
         jsonResponse.put("role",staticJsonResponse.shiroService.getRole());
         return jsonResponse;
     }

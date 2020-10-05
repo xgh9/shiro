@@ -20,15 +20,15 @@ public interface ShiroService {
     //根据学号获取user
     User getUserById(String id);
 
-    //检查是否登录
-    boolean checkAuthentication();
-
-    //检查是否有管理员权限
-    boolean checkAdminPermission();
-
     //修改密码
     JsonResponse changePassowrd(String oldPassword, String password);
 
     //获取当前角色
     String getRole();
+
+    //检查数据库中是否有管理员账户，没有管理员账户不需要管理员权限也能注册管理员账户
+    Integer checkAdmin();
+
+    //删除用户
+    JsonResponse delete(String id);
 }

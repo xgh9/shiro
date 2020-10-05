@@ -36,7 +36,7 @@ public class MyRealm extends AuthorizingRealm {
         String principal = (String) token.getPrincipal();
         User user = shiroService.getUserById(principal);
         if (!ObjectUtils.isEmpty(user)){
-            return new SimpleAuthenticationInfo(user.getId(),user.getPassword(), ByteSource.Util.bytes(user.getId()),this.getName());
+            return new SimpleAuthenticationInfo(user.getId(),user.getPassword(), ByteSource.Util.bytes(user.getSalt()),this.getName());
         }
         return null;
     }

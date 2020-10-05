@@ -11,15 +11,13 @@ public interface UserMapper {
 
     Integer insert(User user);
 
-    List<User> getAllStudent();
-
-    List<User> getAllAdmin();
-
-    List<User> getAllUser();
-
     Integer checkExist(String id);
 
     User getUserById(String id);
 
     Integer update(User user);
+
+    Integer checkAdmin();
+
+    Integer delete(String id);
 }

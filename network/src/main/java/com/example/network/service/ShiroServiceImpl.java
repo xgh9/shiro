@@ -2,15 +2,13 @@ package com.example.network.service;
 
 import com.example.network.config.MyRealm;
 import com.example.network.dao.UserMapper;
+import com.example.network.util.ShiroUtils;
 import com.example.network.vo.ConstantField;
 import com.example.network.vo.JsonResponse;
 import com.example.network.vo.User;
 import org.apache.catalina.security.SecurityUtil;
 import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.authc.AuthenticationInfo;
-import org.apache.shiro.authc.IncorrectCredentialsException;
-import org.apache.shiro.authc.UnknownAccountException;
-import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.authc.*;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.cache.Cache;
 import org.apache.shiro.crypto.hash.Md5Hash;
@@ -18,6 +16,7 @@ import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.Collection;
@@ -44,21 +43,32 @@ public class ShiroServiceImpl implements ShiroService{
                 return JsonResponse.invalidParam("用户名错误");
             }catch (IncorrectCredentialsException e){
                 return JsonResponse.invalidParam("密码错误");
+            }catch (LockedAccountException lae) {
+                return JsonResponse.invalidParam("账号已锁定");
+            } catch (ExcessiveAttemptsException eae) {
+                return JsonResponse.invalidParam("用户名或密码错误次数过多");
+            } catch (AuthenticationException ae) {
+                return JsonResponse.invalidParam("用户名或密码错误");
             }
-            return JsonResponse.success();
+            if (subject.isAuthenticated()){
+                return JsonResponse.success();
+            }else {
+                return JsonResponse.unknownError("登陆失败");
+            }
         }else {
             return JsonResponse.repeatLogin((String)subject.getPrincipal());
         }
     }
 
 
-    //注册成功后不能自动登录，因为只有管理员才能创建管理员账户，自动登录会导致重复登陆
+    //注册成功后不能自动登录，因为管理员创建管理员账户时，自动登录会导致重复登陆
     @Transactional
     @Override
     public JsonResponse register(User user){
-        String password = user.getPassword();
-        Md5Hash md5Hash = new Md5Hash(user.getPassword(),user.getId(),10);
+        String salt = ShiroUtils.getSalt(8);
+        Md5Hash md5Hash = new Md5Hash(user.getPassword(),salt,10);
         user.setPassword(md5Hash.toHex());
+        user.setSalt(salt);
         int res = userMapper.insert(user);
         if (res == 0){
             return JsonResponse.unknownError();
@@ -82,17 +92,6 @@ public class ShiroServiceImpl implements ShiroService{
         return userMapper.getUserById(id);
     }
 
-    @Override
-    public boolean checkAuthentication(){
-        Subject subject = SecurityUtils.getSubject();
-        return subject.isAuthenticated();
-    }
-
-    @Override
-    public boolean checkAdminPermission(){
-        Subject subject = SecurityUtils.getSubject();
-        return subject.hasRole(ConstantField.ROLE_ADMIN);
-    }
 
     //修改改密码后在另一个浏览器还可以用旧密码登录
     //因为修改密码后缓存中会保存原密码，只有注销当前账户才会清空旧密码的缓存，因此手动清空缓存
@@ -101,14 +100,16 @@ public class ShiroServiceImpl implements ShiroService{
     public JsonResponse changePassowrd(String oldPassword, String password){
         Subject subject = SecurityUtils.getSubject();
         String id = (String) subject.getPrincipal();
-        Md5Hash md5Hash = new Md5Hash(oldPassword, id,10);
         User user = getUserById(id);
+        Md5Hash md5Hash = new Md5Hash(oldPassword, user.getSalt(),10);
 
         if (!user.getPassword().equals(md5Hash.toHex())){
             return JsonResponse.invalidParam("旧密码不对劲！");
         }
-        Md5Hash newMd5Hash = new Md5Hash(password, id, 10);
+        String salt = ShiroUtils.getSalt(8);
+        Md5Hash newMd5Hash = new Md5Hash(password, salt, 10);
         user.setPassword(newMd5Hash.toHex());
+        user.setSalt(salt);
 
         //手动清空缓存  如果有更好的获取缓存管理器的方法请告诉我
         Cache<Object, AuthenticationInfo> authenticationCache = myRealm.getAuthenticationCache();
@@ -141,7 +142,6 @@ public class ShiroServiceImpl implements ShiroService{
         AuthorizationInfo info = authorizationCache.get(subject.getPrincipals());
         if (info != null){
             Collection<String> roles = info.getRoles();
-            Iterator<String> iterator = roles.iterator();
             if (roles.size() != 0){
                 String role = roles.iterator().next();
                 //系统中用户都是单角色
@@ -150,7 +150,29 @@ public class ShiroServiceImpl implements ShiroService{
         }
 
         //如果缓存中没有就去数据库中取
-        return getUserById((String)subject.getPrincipal()).getRole();
+        String id = (String)subject.getPrincipal();
+        return getUserById(id).getRole();
+    }
+
+    @Override
+    public Integer checkAdmin() {
+        return userMapper.checkAdmin();
+    }
+
+    @Override
+    public JsonResponse delete(String id) {
+        if (StringUtils.isEmpty(id)){
+            return JsonResponse.invalidParam();
+        }
+        User user = getUserById(id);
+        if (user == null){
+            return JsonResponse.invalidParam("用户" + id +"不存在！");
+        }
+        if (ConstantField.ROLE_ADMIN.equals(user.getRole())){
+            return JsonResponse.noAuthority("去数据库删管理员账号吧！");
+        }
+        userMapper.delete(id);
+        return JsonResponse.success();
     }
 
 
