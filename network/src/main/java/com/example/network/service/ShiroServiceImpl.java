@@ -2,7 +2,7 @@ package com.example.network.service;
 
 import com.example.network.config.DBRealm;
 import com.example.network.dao.UserMapper;
-import com.example.network.util.ShiroUtils;
+import com.example.network.util.JWTUtils;
 import com.example.network.vo.ConstantField;
 import com.example.network.vo.JsonResponse;
 import com.example.network.vo.User;
@@ -35,7 +35,6 @@ public class ShiroServiceImpl implements ShiroService{
         if (!subject.isAuthenticated()){
             try{
                 UsernamePasswordToken token = new UsernamePasswordToken(id, password);
-//                token.setRememberMe(true);
                 subject.login(token);
             }catch (UnknownAccountException e){
                 return JsonResponse.invalidParam("用户名错误");
@@ -49,7 +48,11 @@ public class ShiroServiceImpl implements ShiroService{
                 return JsonResponse.invalidParam("用户名或密码错误");
             }
             if (subject.isAuthenticated()){
-                return JsonResponse.success();
+                User user = getUserById((String) subject.getPrincipal());
+                String token = JWTUtils.sign(user);
+                JsonResponse response = JsonResponse.success();
+                response.put("token", token);
+                return response;
             }else {
                 return JsonResponse.unknownError("登陆失败");
             }
@@ -63,7 +66,7 @@ public class ShiroServiceImpl implements ShiroService{
     @Transactional
     @Override
     public JsonResponse register(User user){
-        String salt = ShiroUtils.getSalt(8);
+        String salt = JWTUtils.getSalt(8);
         Md5Hash md5Hash = new Md5Hash(user.getPassword(),salt,10);
         user.setPassword(md5Hash.toHex());
         user.setSalt(salt);
@@ -104,7 +107,7 @@ public class ShiroServiceImpl implements ShiroService{
         if (!user.getPassword().equals(md5Hash.toHex())){
             return JsonResponse.invalidParam("旧密码不对劲！");
         }
-        String salt = ShiroUtils.getSalt(8);
+        String salt = JWTUtils.getSalt(8);
         Md5Hash newMd5Hash = new Md5Hash(password, salt, 10);
         user.setPassword(newMd5Hash.toHex());
         user.setSalt(salt);

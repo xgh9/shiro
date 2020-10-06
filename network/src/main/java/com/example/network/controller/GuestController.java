@@ -1,7 +1,7 @@
 package com.example.network.controller;
 
+import com.example.network.config.JWTToken;
 import com.example.network.service.ShiroService;
-import com.example.network.util.ShiroUtils;
 import com.example.network.vo.ConstantField;
 import com.example.network.vo.JsonResponse;
 import com.example.network.vo.User;
@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
 /**
@@ -37,9 +38,14 @@ public class GuestController {
         return JsonResponse.noAuthority();
     }
 
+    /**
+     *  "id":"admin","password":"123456"
+     * @param params
+     * @return
+     */
     @PostMapping("/login")
     @ApiOperation("登录")
-    public JsonResponse login(@RequestBody Map<String, String> params){
+    public JsonResponse login(@RequestBody Map<String, String> params, HttpServletResponse httpServletResponse){
         String id = params.get(ConstantField.ID);
         String password = params.get(ConstantField.PASSWORD);
         if (StringUtils.isEmpty(id)){
@@ -48,7 +54,19 @@ public class GuestController {
         if (StringUtils.isEmpty(password)){
             return JsonResponse.invalidParam("密码呢？");
         }
-        return shiroService.login(id,password);
+        //将token放入响应头
+        try {
+            JsonResponse jsonResponse = shiroService.login(id,password);
+            String token = (String)jsonResponse.get("token");
+            httpServletResponse.setHeader("Authentication", token);
+            httpServletResponse.setHeader("Access-Control-Expose-Headers", "Authentication");
+            return jsonResponse;
+        } catch (Exception e) {
+            //subject.login()和httpServletResponse.setHeader需要同时执行,有异常注销
+            Subject subject = SecurityUtils.getSubject();
+            subject.logout();
+            return JsonResponse.unknownError("登陆失败！");
+        }
     }
 
     @PostMapping("/register")
@@ -75,23 +93,6 @@ public class GuestController {
         return shiroService.register(user);
     }
 
-    @GetMapping("/test")
-    @ApiOperation("测试权限")
-    public JsonResponse test(){
-        boolean falgLog = ShiroUtils.checkAuthentication();
-        boolean flagAdmin = ShiroUtils.checkAdminPermission();
-        JsonResponse success = JsonResponse.success();
-        success.put("登陆状态",falgLog);
-        success.put("管理员权限",flagAdmin);
-        Subject subject = SecurityUtils.getSubject();
-        boolean remembered = subject.isRemembered();
-        success.put("记住我",remembered);
-        return success;
-    }
-
-
-
-
     @GetMapping("/getRole")
     @ApiOperation("获取当前用户角色")
     public JsonResponse getRole(){
@@ -105,4 +106,5 @@ public class GuestController {
         }
 
     }
+
 }

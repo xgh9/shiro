@@ -2,10 +2,7 @@ package com.example.network.config;
 
 import com.example.network.service.ShiroService;
 import com.example.network.vo.User;
-import org.apache.shiro.authc.AuthenticationException;
-import org.apache.shiro.authc.AuthenticationInfo;
-import org.apache.shiro.authc.AuthenticationToken;
-import org.apache.shiro.authc.SimpleAuthenticationInfo;
+import org.apache.shiro.authc.*;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
@@ -19,7 +16,11 @@ public class DBRealm extends AuthorizingRealm {
     @Autowired
     ShiroService shiroService;
 
-    //sfa
+    @Override
+    public boolean supports(AuthenticationToken token) {
+        return token instanceof UsernamePasswordToken;
+    }
+
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
         String primaryPrincipal = (String)principalCollection.getPrimaryPrincipal();
@@ -37,7 +38,7 @@ public class DBRealm extends AuthorizingRealm {
         String principal = (String) token.getPrincipal();
         User user = shiroService.getUserById(principal);
         if (!ObjectUtils.isEmpty(user)){
-            return new SimpleAuthenticationInfo(user.getId(),user.getPassword(), ByteSource.Util.bytes(user.getSalt()),this.getName());
+            return new SimpleAuthenticationInfo(user.getId(),user.getPassword(), ByteSource.Util.bytes(user.getSalt()),"DBRealm");
         }
         return null;
     }

@@ -20,4 +20,8 @@ public class JWTToken implements AuthenticationToken {
     public Object getCredentials() {
         return token;
     }
+
+    public String getToken(){
+        return token;
+    }
 }
