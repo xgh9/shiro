@@ -2,14 +2,10 @@ package com.example.network.config;
 
 import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
 import org.apache.shiro.cache.ehcache.EhCacheManager;
-import org.apache.shiro.realm.Realm;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 @Configuration
 public class ShiroConfig {
@@ -46,15 +42,15 @@ public class ShiroConfig {
 
     /**
      * 将Web安全管理器注册到spring容器中
-     * @param myRealm 自定义验证和授权的realm
+     * @param DBRealm 自定义验证和授权的realm
      * @param matcher 自定义密码匹配器
      * @return
      */
     @Bean
-    public DefaultWebSecurityManager getDefaultWebSecurityManager(MyRealm myRealm, HashedCredentialsMatcher matcher){
+    public DefaultWebSecurityManager getDefaultWebSecurityManager(DBRealm DBRealm, HashedCredentialsMatcher matcher){
         DefaultWebSecurityManager defaultWebSecurityManager = new DefaultWebSecurityManager();
 
-        defaultWebSecurityManager.setRealm(myRealm);
+        defaultWebSecurityManager.setRealm(DBRealm);
 
         return defaultWebSecurityManager;
     }
@@ -62,8 +58,8 @@ public class ShiroConfig {
 
 
     @Bean
-    public MyRealm getRealm(HashedCredentialsMatcher matcher){
-        MyRealm realm = new MyRealm();
+    public DBRealm getRealm(HashedCredentialsMatcher matcher){
+        DBRealm realm = new DBRealm();
 
         //开启缓存管理
         realm.setCacheManager(new EhCacheManager());

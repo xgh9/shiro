@@ -14,7 +14,7 @@ import org.apache.shiro.util.ByteSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 
-public class MyRealm extends AuthorizingRealm {
+public class DBRealm extends AuthorizingRealm {
 
     @Autowired
     ShiroService shiroService;

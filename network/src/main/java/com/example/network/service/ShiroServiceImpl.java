@@ -1,12 +1,11 @@
 package com.example.network.service;
 
-import com.example.network.config.MyRealm;
+import com.example.network.config.DBRealm;
 import com.example.network.dao.UserMapper;
 import com.example.network.util.ShiroUtils;
 import com.example.network.vo.ConstantField;
 import com.example.network.vo.JsonResponse;
 import com.example.network.vo.User;
-import org.apache.catalina.security.SecurityUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.authz.AuthorizationInfo;
@@ -20,7 +19,6 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.Collection;
-import java.util.Iterator;
 
 @Service
 public class ShiroServiceImpl implements ShiroService{
@@ -29,7 +27,7 @@ public class ShiroServiceImpl implements ShiroService{
     UserMapper userMapper;
 
     @Autowired
-    MyRealm myRealm;
+    DBRealm DBRealm;
 
     @Override
     public JsonResponse login(String id, String password) {
@@ -112,7 +110,7 @@ public class ShiroServiceImpl implements ShiroService{
         user.setSalt(salt);
 
         //手动清空缓存  如果有更好的获取缓存管理器的方法请告诉我
-        Cache<Object, AuthenticationInfo> authenticationCache = myRealm.getAuthenticationCache();
+        Cache<Object, AuthenticationInfo> authenticationCache = DBRealm.getAuthenticationCache();
         authenticationCache.remove(id);
 
         userMapper.update(user);
@@ -137,7 +135,7 @@ public class ShiroServiceImpl implements ShiroService{
             return "";
         }
 
-        Cache<Object, AuthorizationInfo> authorizationCache = myRealm.getAuthorizationCache();
+        Cache<Object, AuthorizationInfo> authorizationCache = DBRealm.getAuthorizationCache();
         //第一次调用的时候缓存中没有info
         AuthorizationInfo info = authorizationCache.get(subject.getPrincipals());
         if (info != null){
